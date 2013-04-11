@@ -20,7 +20,7 @@ import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import           Data.Tuple (swap)
 
-data BiHashMap k v = BiHashMap !(HM.HashMap k v) !(M.Map v (S.Set k))
+data BiHashMap k v = BiHashMap !(HM.HashMap k v) (M.Map v (S.Set k))
                   deriving (Show)
 
 -- | Construct a BiHashMap from a HashMap
