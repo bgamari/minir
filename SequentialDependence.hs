@@ -1,9 +1,7 @@
 {-# LANGUAGE TemplateHaskell, TupleSections, FlexibleInstances, BangPatterns #-}
 
-module SequentialDependence ( TermIndex
-                            , tFreq, tTerms, tTotalTerms, tDocs
-                            , Score, termScore, termDocScore
-                            , indexTerms
+module SequentialDependence ( OrderedIndex
+                            , indexNGrams
                             ) where
 
 import           Data.HashMap.Strict (HashMap)
@@ -19,66 +17,36 @@ import Data.Foldable
 import Data.Monoid
 import Numeric.Log
 
-type Score = Log Double
-
-data TermIndex doc term
-         = TermIdx  { _tFreq :: !(HashMap term (HashMap doc Int))
-                      -- ^ Number of term mentions in each document
-                    , _tTerms :: !(HashMap term Int)
-                    , _tTotalTerms :: !Int
-                      -- ^ Number of terms in entire collection
-                    , _tDocs :: !(HashMap doc Int)
-                      -- ^ Number of terms in each document
-                    }
-         deriving (Show)
-makeLenses ''TermIndex
-
-instance (Hashable term, Eq term, Hashable doc, Ord doc) => Monoid (TermIndex doc term) where
-    mempty = TermIdx HM.empty HM.empty 0 HM.empty
-    {-# INLINE mempty #-}
-    a `mappend` b = TermIdx (HM.unionWith (HM.unionWith (+)) (a^.tFreq) (b^.tFreq))
-                            (HM.unionWith (+) (a^.tTerms) (b^.tTerms))
-                            (a^.tTotalTerms + b^.tTotalTerms)
-                            (HM.unionWith (+) (a^.tDocs) (b^.tDocs))
-    {-# INLINE mappend #-}
-
-termScore :: (Hashable doc, Eq doc, Hashable term, Eq term)
-          => Double -> TermIndex doc term -> term -> [(doc, Score)]
-termScore alphaD idx term =
-    map (\doc->(doc, termDocScore alphaD idx term doc))
-    $ idx ^. tFreq . at term . non HM.empty . to HM.keys
-
-termDocScore :: (Hashable doc, Eq doc, Hashable term, Eq term)
-             => Double -> TermIndex doc term -> term -> doc -> Score
-termDocScore alphaD idx term doc =
-    (1 - realToFrac alphaD) * realToFrac tf / d + realToFrac alphaD * cf / c
-  where cf = idx ^. tTerms . at term . non 0 . to realToFrac
-        tf = idx ^. tFreq . at term . non HM.empty . at doc . non 0 . to realToFrac
-        d = idx ^. tDocs . at doc . non 0 . to realToFrac
-        c = idx ^. tTotalTerms . to realToFrac
-
-{-# INLINE indexTerms #-}
-indexTerms :: (Hashable doc, Hashable term, Eq term, Ord doc)
-           => doc -> [term] -> TermIndex doc term
-indexTerms doc terms = foldMap' (indexTerm doc) terms
-
-foldMap' :: (Monoid m, Foldable f) => (a -> m) -> f a -> m
-foldMap' f xs = foldl' (\a b->mappend a $ f b) mempty xs
-
-indexTerm :: (Hashable doc, Hashable term)
-          => doc -> term -> TermIndex doc term
-indexTerm doc term = TermIdx (HM.singleton term $ HM.singleton doc 1)
-                             (HM.singleton term 1)
-                             1
-                             (HM.singleton doc 1)
+import TermIndex
 
 ngrams :: Int -> [a] -> [[a]]
 ngrams n = map (take n) . tails
 
-data OrderedStats doc term = OrderedStats { _oFreq :: HashMap (V.Vector term) (HashMap doc Int)
-                                          }
-                           deriving (Show)
-makeLenses ''OrderedStats
+instance Hashable a => Hashable (V.Vector a) where
+    hashWithSalt salt = hashWithSalt salt . V.toList
+
+data OrderedIndex doc term
+        = OIdx { _oFreq :: HashMap (V.Vector term) (HashMap doc Int)
+                 }
+        deriving (Show)
+makeLenses ''OrderedIndex
+
+instance (Hashable term, Eq term, Hashable doc, Ord doc) => Monoid (OrderedIndex doc term) where
+    mempty = OIdx HM.empty
+    a `mappend` b = OIdx (HM.unionWith (HM.unionWith (+)) (a^.oFreq) (b^.oFreq))
+
+{-# INLINE indexNGrams #-}
+indexNGrams :: (Hashable doc, Hashable term, Eq term, Ord doc)
+            => Int -> doc -> [term] -> OrderedIndex doc term
+indexNGrams n doc terms = foldMap' (indexNGram doc . V.fromList) $ ngrams n terms
+
+indexNGram :: (Hashable doc, Hashable term)
+           => doc -> V.Vector term -> OrderedIndex doc term
+indexNGram doc ngram = OIdx (HM.singleton ngram $ HM.singleton doc 1)
+
+foldMap' :: (Monoid m, Foldable f) => (a -> m) -> f a -> m
+foldMap' f xs = foldl' (\a b->mappend a $ f b) mempty xs
+
 
 data UnorderedStats doc term = UnorderedStats { _uFreq :: HashMap (Set term) (HashMap doc Int)
                                               }

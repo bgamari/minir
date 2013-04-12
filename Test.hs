@@ -3,6 +3,7 @@ import Data.List
 import Data.Monoid
 import qualified Data.Set as S
 import Data.Foldable
+import TermIndex
 import SequentialDependence
 import Control.Lens
 
