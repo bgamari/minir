@@ -6,6 +6,7 @@ import Data.Foldable
 import qualified Data.HashMap.Strict as HM
 import TermIndex as TI
 import OrderedIndex as OI
+import UnorderedIndex as UI
 import SequentialDependence as SD
 import Control.Lens
 import qualified Data.Vector as V
@@ -16,7 +17,7 @@ documents =
     , (101, [1,2,3,4])
     , (102, [1,3])
     , (103, [1,3,5])
-    ] ++map (\i->(i,[10..20])) [200..300000]
+    ] ++ map (\i->(i,[10..20])) [200..300000]
 
 main = do
     let idx = foldMap' (uncurry TI.indexTerms) documents
