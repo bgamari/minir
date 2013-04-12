@@ -4,9 +4,6 @@ module SequentialDependence where
 
 import           Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
-import           Data.BiHashMap (BiHashMap)
-import qualified Data.BiHashMap as BHM
-import qualified Data.IntMap as IM
 import           Data.Set (Set)
 import qualified Data.Set as S
 import qualified Data.Vector as V
@@ -20,7 +17,9 @@ import Numeric.Log
 
 type Score = Log Double
 
+-- | TermIndex is suitable for querying
 type TermIndex doc term = TermIndex' (Set (Int,doc)) doc term
+-- | TermStats is suitable for building up during indexing
 type TermStats doc term = TermIndex' (HashMap doc Int) doc term
 
 data TermIndex' postings doc term
@@ -45,7 +44,7 @@ instance (Hashable term, Eq term, Hashable doc, Ord doc) => Monoid (TermStats do
 termScore :: (Hashable doc, Eq doc, Hashable term, Eq term)
           => Double -> TermIndex doc term -> term -> [(doc, Score)]
 termScore alphaD idx term =
-    let freqs = maybe [] S.toAscList $ idx^?tFreq.ix term
+    let freqs = maybe [] S.toDescList $ idx^?tFreq.ix term
     in map (\a@(_,doc) -> (doc, termDocScore alphaD idx term a)) freqs
 
 termDocScore :: (Hashable doc, Eq doc, Hashable term, Eq term)
@@ -53,8 +52,8 @@ termDocScore :: (Hashable doc, Eq doc, Hashable term, Eq term)
 termDocScore alphaD idx term (tf,doc) =
     (1 - realToFrac alphaD) * realToFrac tf / d + realToFrac alphaD * cf / c
   where cf = idx ^. tTerms . at term . non 0 . to realToFrac
-        d = idx ^. tDocs . at doc . non 0 . to realToFrac :: Log Double
-        c = idx ^. tFreq . to HM.size . to realToFrac
+        d = idx ^. tDocs . at doc . non 0 . to realToFrac
+        c = idx ^. tTotalTerms . to realToFrac
 
 indexTerms :: (Hashable doc, Hashable term, Eq term, Ord doc)
            => doc -> [term] -> TermStats doc term
