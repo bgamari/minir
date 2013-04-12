@@ -1,6 +1,10 @@
 {-# LANGUAGE TemplateHaskell, TupleSections, FlexibleInstances, BangPatterns #-}
 
-module SequentialDependence where
+module SequentialDependence ( TermIndex
+                            , tFreq, tTerms, tTotalTerms, tDocs
+                            , Score, termScore, termDocScore
+                            , indexTerms
+                            ) where
 
 import           Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
@@ -56,9 +60,10 @@ termDocScore alphaD idx term doc =
 {-# INLINE indexTerms #-}
 indexTerms :: (Hashable doc, Hashable term, Eq term, Ord doc)
            => doc -> [term] -> TermIndex doc term
-indexTerms doc terms =
-    --foldMap (indexTerm doc) terms
-    foldl' (\a t->mappend a $! indexTerm doc t) mempty terms
+indexTerms doc terms = foldMap' (indexTerm doc) terms
+
+foldMap' :: (Monoid m, Foldable f) => (a -> m) -> f a -> m
+foldMap' f xs = foldl' (\a b->mappend a $ f b) mempty xs
 
 indexTerm :: (Hashable doc, Hashable term)
           => doc -> term -> TermIndex doc term

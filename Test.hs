@@ -15,6 +15,9 @@ documents =
     ] ++map (\i->(i,[10..20])) [200..300000]
 
 main = do
-    let idx = Data.List.foldl' (\a (d,n)->mappend a $! indexTerms d n) mempty documents
+    let idx = foldMap' (uncurry indexTerms) documents
     print $ idx ^. tTotalTerms
     Prelude.mapM_ (print . sortBy (flip compare `on` snd) . termScore 0.1 idx) [1..5]
+
+foldMap' :: (Monoid m, Foldable f) => (a -> m) -> f a -> m
+foldMap' f xs = Data.Foldable.foldl' (\a b->mappend a $ f b) mempty xs
