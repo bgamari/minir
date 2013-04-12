@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, TupleSections, FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell, TupleSections, FlexibleInstances, BangPatterns #-}
 
 module SequentialDependence where
 
@@ -31,10 +31,12 @@ makeLenses ''TermIndex
 
 instance (Hashable term, Eq term, Hashable doc, Ord doc) => Monoid (TermIndex doc term) where
     mempty = TermIdx HM.empty HM.empty 0 HM.empty
+    {-# INLINE mempty #-}
     a `mappend` b = TermIdx (HM.unionWith (HM.unionWith (+)) (a^.tFreq) (b^.tFreq))
                             (HM.unionWith (+) (a^.tTerms) (b^.tTerms))
                             (a^.tTotalTerms + b^.tTotalTerms)
                             (HM.unionWith (+) (a^.tDocs) (b^.tDocs))
+    {-# INLINE mappend #-}
 
 termScore :: (Hashable doc, Eq doc, Hashable term, Eq term)
           => Double -> TermIndex doc term -> term -> [(doc, Score)]
@@ -51,9 +53,12 @@ termDocScore alphaD idx term doc =
         d = idx ^. tDocs . at doc . non 0 . to realToFrac
         c = idx ^. tTotalTerms . to realToFrac
 
+{-# INLINE indexTerms #-}
 indexTerms :: (Hashable doc, Hashable term, Eq term, Ord doc)
            => doc -> [term] -> TermIndex doc term
-indexTerms doc terms = foldMap (indexTerm doc) terms
+indexTerms doc terms =
+    --foldMap (indexTerm doc) terms
+    foldl' (\a t->mappend a $! indexTerm doc t) mempty terms
 
 indexTerm :: (Hashable doc, Hashable term)
           => doc -> term -> TermIndex doc term
