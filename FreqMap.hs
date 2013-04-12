@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, DeriveGeneric #-}
 
 module FreqMap ( FreqMap, fTotal, fFreqs, singleton ) where
 
@@ -7,11 +7,12 @@ import qualified Data.HashMap.Strict as HM
 import Control.Lens
 import Data.Monoid
 import Data.Hashable
+import GHC.Generics
 
 data FreqMap doc = FreqMap { _fTotal :: !Int
                            , _fFreqs :: !(HashMap doc Int)
                            }
-                 deriving (Show)
+                 deriving (Show, Generic)
 makeLenses ''FreqMap
 
 singleton :: Hashable doc => doc -> Int -> FreqMap doc

@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, DeriveGeneric #-}
 
 module UnorderedIndex where
 
@@ -6,8 +6,9 @@ import           Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Set as S
 import qualified Data.Vector as V
-import Data.Hashable
 
+import Data.Hashable
+import GHC.Generics
 import Control.Lens
 import Data.List (tails)
 import Data.Foldable
@@ -23,7 +24,7 @@ instance Hashable a => Hashable (S.Set a) where
 
 newtype UnorderedIndex doc term
         = UIdx { _oFreq :: (HashMap (S.Set term) (FreqMap doc)) }
-        deriving (Show)
+        deriving (Show, Generic)
 makeLenses ''UnorderedIndex
 
 instance (Hashable term, Eq term, Hashable doc, Eq doc)

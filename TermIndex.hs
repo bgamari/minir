@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, TupleSections, FlexibleInstances, BangPatterns #-}
+{-# LANGUAGE TemplateHaskell, TupleSections, FlexibleInstances, BangPatterns, DeriveGeneric #-}
 
 module TermIndex ( TermIndex
                  , tFreq, tTerms, tTotalTerms, tDocs
@@ -11,9 +11,11 @@ import qualified Data.HashMap.Strict as HM
 import           Data.Set (Set)
 import qualified Data.Set as S
 import qualified Data.Vector as V
-import Data.Hashable
 
-import           Control.Lens
+import Data.Hashable
+import GHC.Generics (Generic)
+import Data.Binary (Binary)
+import Control.Lens
 import Data.List (tails)
 import Data.Foldable
 import Data.Monoid
@@ -30,7 +32,7 @@ data TermIndex doc term
                     , _tDocs :: !(HashMap doc Int)
                       -- ^ Number of terms in each document
                     }
-         deriving (Show)
+         deriving (Show, Generic)
 makeLenses ''TermIndex
 
 instance (Hashable term, Eq term, Hashable doc, Ord doc) => Monoid (TermIndex doc term) where
