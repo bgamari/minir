@@ -45,6 +45,7 @@ fromTerms :: (Hashable doc, Hashable term, Eq term, Ord doc)
           => Int -> doc -> [term] -> OrderedIndex doc term
 fromTerms n doc terms = foldMap' (fromNGram doc . V.fromList) $ ngrams n terms
 
+{-# INLINE fromNGram #-}
 fromNGram :: (Hashable doc, Hashable term, Ord doc)
           => doc -> V.Vector term -> OrderedIndex doc term
 fromNGram doc ngram = OIdx (HM.singleton ngram $ FM.singleton doc 1)

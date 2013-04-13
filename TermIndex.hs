@@ -35,9 +35,11 @@ instance (Ord doc, Ord term) => Monoid (TermIndex doc term) where
     TIdx a `mappend` TIdx b = TIdx (M.unionWith mappend a b)
     {-# INLINE mappend #-}
 
+{-# INLINE fromTerms #-}
 fromTerms :: (Ord doc, Ord term) => doc -> [term] -> TermIndex doc term
 fromTerms doc terms = foldMap' (fromTerm doc) terms
 
+{-# INLINE fromTerm #-}
 fromTerm :: Ord doc => doc -> term -> TermIndex doc term
 fromTerm doc term = TIdx $ M.singleton term $ FM.singleton doc 1
 
