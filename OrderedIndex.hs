@@ -59,9 +59,9 @@ foldMap' f xs = foldl' (\a b->mappend a $ f b) mempty xs
 
 termsScore :: (Ord doc, Hashable term, Eq term)
            => Int -> Double -> CorpusStats doc term -> OrderedIndex doc term
-           -> V.Vector term -> M.Map doc Score
+           -> [term] -> M.Map doc Score
 termsScore n alphaD stats oidx terms =
-   let ngrams' = map V.fromList $ ngrams n $ V.toList terms
+   let ngrams' = map V.fromList $ ngrams n terms
    in foldl' (M.unionWith (+)) mempty $ do
                      ngram <- ngrams'
                      doc <- oidx ^. oFreq . at ngram . def mempty . fFreqs . to M.keys
