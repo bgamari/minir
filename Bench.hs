@@ -10,8 +10,12 @@ import Data.Char
 import Data.Monoid
 import Data.Foldable
 import Data.List
+import Data.Hashable (Hashable)
 import Control.Monad
 import System.FilePath
+import Control.Monad.State.Strict
+import qualified Dictionary as D
+import Control.Lens
 
 getTerms :: FilePath -> IO [(FilePath, [T.Text])]
 getTerms fname = do
@@ -22,7 +26,11 @@ getTerms fname = do
                  $ T.toLower d
      return [(fname, terms)]
 
-term = "dna"
+term = 1
+
+mapTerms :: (Eq term, Hashable term)
+         => [(doc, [term])] -> ([(doc, [D.Key])], D.Dictionary term)
+mapTerms terms = runState (terms & traverse . _2 . traverse %%~ (state . D.getKey)) D.empty
 
 getFiles :: IO [FilePath]
 getFiles = do
@@ -31,12 +39,14 @@ getFiles = do
 
 main = do
     files <- getFiles
-    terms <- foldlM (\a fname -> mappend a <$> getTerms fname) mempty files
+    terms' <- foldlM (\a fname -> mappend a <$> getTerms fname) mempty files
+    let terms :: [(FilePath, [D.Key])]
+        (terms, dict) = mapTerms terms'
     putStrLn $ "Documents: "++show (length terms)
     putStrLn $ "Terms: "++show (Prelude.sum $ map (\(n,d)->length d) terms)
     let idx = foldMap (uncurry TI.indexTerms) terms
     defaultMain
       [ bench "index" $ whnf (foldMap (uncurry TI.indexTerms))
-                      $ map (\(n,d)->(n,take 10 d)) terms
+                      $ map (\(n,d)->(n,take 100 d)) terms
       , bench "query" $ nf (termScore 0.1 idx) term
       ]
