@@ -1,76 +1,63 @@
-{-# LANGUAGE TemplateHaskell, TupleSections, FlexibleInstances, BangPatterns, DeriveGeneric #-}
+{-# LANGUAGE TemplateHaskell, TupleSections, FlexibleInstances, BangPatterns, DeriveGeneric, RankNTypes #-}
 
-module TermIndex ( TermIndex
-                 , tFreq, tTerms, tTotalTerms, tDocs
+module TermIndex ( TermIndex, tFreq
                  , Score, termScore, termDocScore
-                 , indexTerms
+                 , fromTerms, fromTerm
                  ) where
 
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
-import           Data.Set (Set)
-import qualified Data.Set as S
-import qualified Data.Vector as V
 
 import GHC.Generics (Generic)
 import Data.Binary (Binary)
-import Control.Lens
-import Data.List (tails)
+import Control.Lens hiding (index)
 import Data.Foldable
 import Data.Monoid
 import Numeric.Log
 
+import FreqMap (fFreqs, fTotal, FreqMap)
+import qualified FreqMap as FM
+import CorpusStats (CorpusStats)
+import qualified CorpusStats as CS
+
 type Score = Log Double
 
-data TermIndex doc term
-         = TermIdx  { _tFreq :: !(Map term (Map doc Int))
-                      -- ^ Number of term mentions in each document
-                    , _tTerms :: !(Map term Int)
-                    , _tTotalTerms :: !Int
-                      -- ^ Number of terms in entire collection
-                    , _tDocs :: !(Map doc Int)
-                      -- ^ Number of terms in each document
-                    }
-         deriving (Show, Generic)
+newtype TermIndex doc term
+        = TIdx { _tFreq :: Map term (FreqMap doc) }
+        deriving (Show, Generic)
 makeLenses ''TermIndex
 
 instance (Binary doc, Binary term) => Binary (TermIndex doc term)
 
-instance (Ord term, Ord doc) => Monoid (TermIndex doc term) where
-    mempty = TermIdx M.empty M.empty 0 M.empty
+instance (Ord doc, Ord term) => Monoid (TermIndex doc term) where
+    mempty = TIdx M.empty
     {-# INLINE mempty #-}
-    a `mappend` b = TermIdx (M.unionWith (M.unionWith (+)) (a^.tFreq) (b^.tFreq))
-                            (M.unionWith (+) (a^.tTerms) (b^.tTerms))
-                            (a^.tTotalTerms + b^.tTotalTerms)
-                            (M.unionWith (+) (a^.tDocs) (b^.tDocs))
+    TIdx a `mappend` TIdx b = TIdx (M.unionWith mappend a b)
     {-# INLINE mappend #-}
 
-termScore :: (Ord doc, Ord term)
-          => Double -> TermIndex doc term -> term -> [(doc, Score)]
-termScore alphaD idx term =
-    map (\doc->(doc, termDocScore alphaD idx term doc))
-    $ idx ^. tFreq . at term . non M.empty . to M.keys
+fromTerms :: (Ord doc, Ord term) => doc -> [term] -> TermIndex doc term
+fromTerms doc terms = foldMap' (fromTerm doc) terms
 
-termDocScore :: (Ord doc, Ord term)
-             => Double -> TermIndex doc term -> term -> doc -> Score
-termDocScore alphaD idx term doc =
-    (1 - realToFrac alphaD) * realToFrac tf / d + realToFrac alphaD * cf / c
-  where cf = idx ^. tTerms . at term . non 0 . to realToFrac
-        tf = idx ^. tFreq . at term . non M.empty . at doc . non 0 . to realToFrac
-        d = idx ^. tDocs . at doc . non 0 . to realToFrac
-        c = idx ^. tTotalTerms . to realToFrac
-
-{-# INLINE indexTerms #-}
-indexTerms :: (Ord doc, Ord term)
-           => doc -> [term] -> TermIndex doc term
-indexTerms doc terms = foldMap' (indexTerm doc) terms
+fromTerm :: Ord doc => doc -> term -> TermIndex doc term
+fromTerm doc term = TIdx $ M.singleton term $ FM.singleton doc 1
 
 foldMap' :: (Monoid m, Foldable f) => (a -> m) -> f a -> m
-foldMap' f xs = foldl' (\a b->mappend a $ f b) mempty xs
+foldMap' f xs = Data.Foldable.foldl' (\a b->mappend a $ f b) mempty xs
 
-indexTerm :: (Ord doc, Ord term)
-          => doc -> term -> TermIndex doc term
-indexTerm doc term = TermIdx (M.singleton term $ M.singleton doc 1)
-                             (M.singleton term 1)
-                             1
-                             (M.singleton doc 1)
+termScore :: (Ord doc, Ord term)
+          => Double -> CorpusStats doc term -> TermIndex doc term -> term -> [(doc, Score)]
+termScore alphaD stats idx term =
+    map (\doc->(doc, termDocScore alphaD stats idx term doc))
+    $ idx ^. tFreq . at term . def mempty . fFreqs . to M.keys
+
+termDocScore :: (Ord doc, Ord term)
+             => Double -> CorpusStats doc term -> TermIndex doc term -> term -> doc -> Score
+termDocScore alphaD stats idx term doc =
+    (1 - realToFrac alphaD) * realToFrac tf / d + realToFrac alphaD * cf / c
+  where cf = idx ^. tFreq . at term . def mempty . fTotal . to realToFrac
+        tf = idx ^. tFreq . at term . def mempty . fFreqs . at doc . def 0 . to realToFrac
+        d = stats ^. CS.cDocs . at doc . def 0 . to realToFrac
+        c = stats ^. CS.cTotalTerms . to realToFrac
+
+def :: a -> Getter (Maybe a) a
+def a = to (maybe a id)

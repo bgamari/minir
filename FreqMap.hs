@@ -22,4 +22,6 @@ singleton doc n = FreqMap n (M.singleton doc n)
 
 instance (Ord doc) => Monoid (FreqMap doc) where
     mempty = FreqMap 0 M.empty
+    {-# INLINE mempty #-}
     FreqMap na fa `mappend` FreqMap nb fb = FreqMap (na+nb) (M.unionWith (+) fa fb)
+    {-# INLINE mappend #-}
