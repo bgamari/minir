@@ -13,14 +13,12 @@ import Data.Binary (Binary)
 import Control.Lens hiding (index)
 import Data.Foldable
 import Data.Monoid
-import Numeric.Log
+import Types
 
 import FreqMap (fFreqs, fTotal, FreqMap)
 import qualified FreqMap as FM
 import CorpusStats (CorpusStats)
 import qualified CorpusStats as CS
-
-type Score = Log Double
 
 newtype TermIndex doc term
         = TIdx { _tFreq :: Map term (FreqMap doc) }

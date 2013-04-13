@@ -8,11 +8,12 @@ import           Data.List
 import           Data.Monoid
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
+import           SequentialDependence as SD
 import           System.Environment
 import           System.Exit
 import           System.IO.Error
 import           System.Process
-import           TermIndex as TI
+import           Types
 
 readPDF :: FilePath -> IO T.Text
 readPDF fname = spoon $ do
@@ -30,14 +31,14 @@ readPDF fname = spoon $ do
                                         return T.empty
                        Right res  -> return res
 
-indexPDF :: FilePath -> IO (TermIndex String T.Text)
-indexPDF fname = TI.indexTerms fname . T.words . T.toLower <$> readPDF fname
+indexPDF :: FilePath -> IO (SeqDepIndex String T.Text)
+indexPDF fname = SD.fromDocument 2 fname . T.words . T.toLower <$> readPDF fname
 
 main = do
     term:args <- getArgs
     idx <- foldlM (\a fname->mappend a <$> indexPDF fname) mempty args
-    print $ take 10 $ topN idx (T.pack term)
+    print $ take 10 $ topN idx [T.pack term]
 
-topN :: (Ord term, Ord doc)
-     => TermIndex doc term -> term -> [(doc, Score)]
-topN idx term = sortBy (flip compare `on` snd) $ termScore 0.1 idx term
+topN :: (Ord term, Ord doc, Hashable term, Eq term)
+     => SeqDepIndex doc term -> [term] -> [(doc, Score)]
+topN idx = sortBy (flip compare `on` snd) . scoreTerms defaultParams idx
