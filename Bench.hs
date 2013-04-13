@@ -39,9 +39,8 @@ getFiles = do
 
 main = do
     files <- getFiles
-    terms' <- foldlM (\a fname -> mappend a <$> getTerms fname) mempty files
-    let terms :: [(FilePath, [D.Key])]
-        (terms, dict) = mapTerms terms'
+    (terms,dict) <- mapTerms <$> foldlM (\a fname -> mappend a <$> getTerms fname)
+                    mempty files
     putStrLn $ "Documents: "++show (length terms)
     putStrLn $ "Terms: "++show (Prelude.sum $ map (\(n,d)->length d) terms)
     let idx = foldMap (uncurry TI.indexTerms) terms
