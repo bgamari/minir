@@ -40,6 +40,6 @@ main = do
     --print idx
     print $ take 10 $ topN idx (T.pack term)
 
-topN :: (Hashable term, Eq term, Hashable doc, Eq doc)
+topN :: (Ord term, Ord doc)
      => TermIndex doc term -> term -> [(doc, Score)]
 topN idx term = sortBy (flip compare `on` snd) $ termScore 0.1 idx term

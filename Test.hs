@@ -3,7 +3,7 @@ import Data.List
 import Data.Monoid
 import qualified Data.Set as S
 import Data.Foldable
-import qualified Data.HashMap.Strict as HM
+import qualified Data.Map.Strict as M
 import TermIndex as TI
 import OrderedIndex as OI
 import UnorderedIndex as UI
@@ -25,7 +25,7 @@ main = do
 
     Prelude.mapM_ (print . sortBy (flip compare `on` snd) . termScore 0.1 idx) [1..5]
     print $ sortBy (flip compare `on` snd)
-          $ HM.toList $ termsScore 2 0.1 idx oidx $ V.fromList [1..8]
+          $ M.toList $ termsScore 2 0.1 idx oidx $ V.fromList [1..8]
 
 foldMap' :: (Monoid m, Foldable f) => (a -> m) -> f a -> m
 foldMap' f xs = Data.Foldable.foldl' (\a b->mappend a $ f b) mempty xs

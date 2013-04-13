@@ -2,8 +2,8 @@
 
 module UnorderedIndex where
 
-import           Data.HashMap.Strict (HashMap)
-import qualified Data.HashMap.Strict as HM
+import           Data.Map.Strict (Map)
+import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import qualified Data.Vector as V
 
@@ -23,11 +23,11 @@ instance Hashable a => Hashable (S.Set a) where
     hashWithSalt salt = hashWithSalt salt . S.toAscList
 
 newtype UnorderedIndex doc term
-        = UIdx { _oFreq :: (HashMap (S.Set term) (FreqMap doc)) }
+        = UIdx { _oFreq :: (Map (S.Set term) (FreqMap doc)) }
         deriving (Show, Generic)
 makeLenses ''UnorderedIndex
 
-instance (Hashable term, Eq term, Hashable doc, Eq doc)
+instance (Ord doc, Ord term)
          => Monoid (UnorderedIndex doc term) where
-    mempty = UIdx HM.empty
-    UIdx a `mappend` UIdx b = UIdx (HM.unionWith mappend a b)
+    mempty = UIdx M.empty
+    UIdx a `mappend` UIdx b = UIdx (M.unionWith mappend a b)
