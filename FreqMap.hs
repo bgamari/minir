@@ -8,12 +8,14 @@ import Control.Lens
 import Data.Monoid
 import Data.Hashable
 import GHC.Generics
+import Data.Binary
 
 data FreqMap doc = FreqMap { _fTotal :: !Int
                            , _fFreqs :: !(Map doc Int)
                            }
                  deriving (Show, Generic)
 makeLenses ''FreqMap
+instance Binary doc => Binary (FreqMap doc)
 
 singleton :: Ord doc => doc -> Int -> FreqMap doc
 singleton doc n = FreqMap n (M.singleton doc n)
