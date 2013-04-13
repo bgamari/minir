@@ -10,6 +10,9 @@ import           Data.HashMap.Strict (HashMap)
 import qualified Data.IntMap.Strict as IM
 import           Data.IntMap.Strict (IntMap)
 import Data.Hashable
+import Data.Binary
+import Control.Applicative ((<$>))
+import Data.List (foldl')
 
 type Key = Int
 
@@ -17,6 +20,18 @@ data Dictionary term = Dict { rev :: IntMap term
                             , fwd :: HashMap term Key
                             }
                      deriving (Show)
+
+instance (Hashable term, Eq term, Binary term) => Binary (Dictionary term) where
+    put = put . toList
+    get = fromList <$> get
+
+toList :: Dictionary term -> [(Key, term)]
+toList (Dict rev _) = IM.toList rev
+
+fromList :: (Hashable term, Eq term) => [(Key, term)] -> Dictionary term
+fromList xs = Dict rev fwd
+  where (rev, fwd) = foldl' (\(f,r) (k,v)->(IM.insert k v f, HM.insert v k r))
+                     (IM.empty, HM.empty) xs
 
 empty :: Dictionary term
 empty = Dict IM.empty HM.empty
