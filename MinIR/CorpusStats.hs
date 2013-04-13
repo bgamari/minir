@@ -1,8 +1,8 @@
 {-# LANGUAGE TemplateHaskell, DeriveGeneric #-}
 
-module CorpusStats ( CorpusStats, cTotalTerms, cDocs
-                   , fromDocument
-                   ) where
+module MinIR.CorpusStats ( CorpusStats, cTotalTerms, cDocs
+                         , fromDocument
+                         ) where
 
 import Data.Binary
 import Data.Monoid

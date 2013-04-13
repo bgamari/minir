@@ -1,6 +1,8 @@
 {-# LANGUAGE TemplateHaskell, DeriveGeneric #-}
 
-module FreqMap ( FreqMap, fTotal, fFreqs, singleton ) where
+module MinIR.FreqMap ( FreqMap, fTotal, fFreqs
+                     , singleton
+                     ) where
 
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M

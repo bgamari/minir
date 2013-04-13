@@ -1,11 +1,11 @@
 {-# LANGUAGE TemplateHaskell, DeriveGeneric #-}
 
-module SequentialDependence ( SeqDepIndex
-                            , SeqDepParams
-                            , defaultParams
-                            , fromDocument
-                            , scoreTerms
-                            ) where
+module MinIR.SequentialDependence ( SeqDepIndex
+                                  , SeqDepParams
+                                  , defaultParams
+                                  , fromDocument
+                                  , scoreTerms
+                                  ) where
 
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
@@ -18,10 +18,10 @@ import Data.Monoid
 import Data.Binary
 import GHC.Generics (Generic)
 
-import Types
-import qualified CorpusStats as CS
-import qualified TermIndex as TI
-import qualified OrderedIndex as OI
+import MinIR.Types
+import qualified MinIR.CorpusStats as CS
+import qualified MinIR.TermIndex as TI
+import qualified MinIR.OrderedIndex as OI
 --import qualified UnorderedIndex as UI
 
 data SeqDepIndex doc term

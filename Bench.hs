@@ -15,9 +15,9 @@ import System.FilePath
 import Control.Monad.State.Strict
 import Control.Lens
 
-import qualified Dictionary as D
-import qualified CorpusStats as CS
-import TermIndex as TI
+import qualified MinIR.Dictionary as D
+import qualified MinIR.CorpusStats as CS
+import MinIR.TermIndex as TI
 
 getTerms :: FilePath -> IO [(FilePath, [T.Text])]
 getTerms fname = do

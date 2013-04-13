@@ -1,10 +1,10 @@
-module NGramTrie ( NGramTrie
-                 , insert
-                 , update
-                 , isEmpty
-                 , findSub
-                 , lookup
-                 ) where
+module MinIR.NGramTrie ( NGramTrie
+                       , insert
+                       , update
+                       , isEmpty
+                       , findSub
+                       , lookup
+                       ) where
 
 import Prelude hiding (lookup, all)
 import qualified Data.HashMap.Strict as HM

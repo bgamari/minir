@@ -1,8 +1,8 @@
-module Dictionary ( Dictionary
-                  , empty
-                  , lookupKey, lookupTerm
-                  , getKey
-                  ) where
+module MinIR.Dictionary ( Dictionary
+                        , empty
+                        , lookupKey, lookupTerm
+                        , getKey
+                        ) where
 
 import qualified Data.HashMap.Strict as HM
 import           Data.HashMap.Strict (HashMap)

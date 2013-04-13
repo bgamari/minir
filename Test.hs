@@ -5,13 +5,12 @@ import qualified Data.Set as S
 import Data.Foldable
 import qualified Data.Map.Strict as M
 import Control.Lens
-import qualified Data.Vector as V
 
-import CorpusStats as CS
-import TermIndex as TI
-import OrderedIndex as OI
-import UnorderedIndex as UI
-import SequentialDependence as SD
+import MinIR.CorpusStats as CS
+import MinIR.TermIndex as TI
+import MinIR.OrderedIndex as OI
+import MinIR.UnorderedIndex as UI
+import MinIR.SequentialDependence as SD
 
 documents :: [(Int, [Int])]
 documents =

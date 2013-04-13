@@ -14,8 +14,8 @@ import           Data.Binary
 import           System.Directory
 import           Data.Text.Binary
 
-import           SequentialDependence as SD
-import           Types
+import           MinIR.SequentialDependence as SD
+import           MinIR.Types
 
 readPDF :: FilePath -> IO T.Text
 readPDF fname = spoon $ do

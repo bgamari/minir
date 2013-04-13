@@ -1,9 +1,9 @@
 {-# LANGUAGE TemplateHaskell, TupleSections, FlexibleInstances, BangPatterns, DeriveGeneric, RankNTypes #-}
 
-module TermIndex ( TermIndex, tFreq
-                 , Score, termsScore, termScore, termDocScore
-                 , fromTerms, fromTerm
-                 ) where
+module MinIR.TermIndex ( TermIndex, tFreq
+                       , Score, termsScore, termScore, termDocScore
+                       , fromTerms, fromTerm
+                       ) where
 
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
@@ -13,12 +13,12 @@ import Data.Binary (Binary)
 import Control.Lens hiding (index)
 import Data.Foldable
 import Data.Monoid
-import Types
 
-import FreqMap (fFreqs, fTotal, FreqMap)
-import qualified FreqMap as FM
-import CorpusStats (CorpusStats)
-import qualified CorpusStats as CS
+import MinIR.Types
+import MinIR.FreqMap (fFreqs, fTotal, FreqMap)
+import qualified MinIR.FreqMap as FM
+import MinIR.CorpusStats (CorpusStats)
+import qualified MinIR.CorpusStats as CS
 
 newtype TermIndex doc term
         = TIdx { _tFreq :: Map term (FreqMap doc) }

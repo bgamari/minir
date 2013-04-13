@@ -6,8 +6,8 @@ import Data.Text.Binary
 import System.Environment (getArgs)
 import Data.Function (on)
 
-import SequentialDependence as SD
-import Types
+import MinIR.SequentialDependence as SD
+import MinIR.Types
 
 main = do
     terms <- getArgs

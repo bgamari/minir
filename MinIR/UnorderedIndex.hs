@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, DeriveGeneric #-}
 
-module UnorderedIndex where
+module MinIR.UnorderedIndex where
 
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
@@ -15,9 +15,9 @@ import Data.Foldable
 import Data.Monoid
 import Numeric.Log
 
-import TermIndex hiding (indexTerms, termScore, termDocScore)
-import FreqMap (fFreqs, fTotal, FreqMap)
-import qualified FreqMap as FM
+import MinIR.TermIndex hiding (indexTerms, termScore, termDocScore)
+import MinIR.FreqMap (fFreqs, fTotal, FreqMap)
+import qualified MinIR.FreqMap as FM
 
 instance Hashable a => Hashable (S.Set a) where
     hashWithSalt salt = hashWithSalt salt . S.toAscList

@@ -1,9 +1,9 @@
 {-# LANGUAGE TemplateHaskell, DeriveGeneric, RankNTypes #-}
 
-module OrderedIndex ( OrderedIndex
-                    , fromTerms
-                    , termsScore
-                    ) where
+module MinIR.OrderedIndex ( OrderedIndex
+                          , fromTerms
+                          , termsScore
+                          ) where
 
 import           Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
@@ -19,12 +19,12 @@ import Data.Foldable
 import Data.Monoid
 import Data.Binary
 import GHC.Generics (Generic)
-import Types
 
-import TermIndex (Score)
-import FreqMap (fFreqs, fTotal, FreqMap)
-import CorpusStats
-import qualified FreqMap as FM
+import MinIR.Types
+import MinIR.TermIndex (Score)
+import MinIR.FreqMap (fFreqs, fTotal, FreqMap)
+import MinIR.CorpusStats
+import qualified MinIR.FreqMap as FM
 
 ngrams :: Int -> [a] -> [[a]]
 ngrams n = map (take n) . tails
