@@ -13,9 +13,9 @@ import Data.Binary
 import Control.Applicative ((<$>))
 import Data.List (foldl')
 
-data Dictionary key term = Dict { next :: key
-                                , rev :: IntMap term
-                                , fwd :: HashMap term key
+data Dictionary key term = Dict { next :: !key
+                                , rev :: !(IntMap term)
+                                , fwd :: !(HashMap term key)
                                 }
                      deriving (Show)
 
