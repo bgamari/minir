@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell, TupleSections, FlexibleInstances, BangPatterns, DeriveGeneric, RankNTypes #-}
 
 module TermIndex ( TermIndex, tFreq
-                 , Score, termScore, termDocScore
+                 , Score, termsScore, termScore, termDocScore
                  , fromTerms, fromTerm
                  ) where
 
@@ -45,6 +45,11 @@ fromTerm doc term = TIdx $ M.singleton term $ FM.singleton doc 1
 
 foldMap' :: (Monoid m, Foldable f) => (a -> m) -> f a -> m
 foldMap' f xs = Data.Foldable.foldl' (\a b->mappend a $ f b) mempty xs
+
+termsScore :: (Ord doc, Ord term)
+           => Double -> CorpusStats doc term -> TermIndex doc term -> [term] -> Map doc Score
+termsScore alphaD stats idx =
+    M.unionsWith (+) . map (M.fromList . termScore alphaD stats idx)
 
 termScore :: (Ord doc, Ord term)
           => Double -> CorpusStats doc term -> TermIndex doc term -> term -> [(doc, Score)]
