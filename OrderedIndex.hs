@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, TupleSections, FlexibleInstances, BangPatterns, RankNTypes #-}
+{-# LANGUAGE TemplateHaskell, DeriveGeneric, RankNTypes #-}
 
 module OrderedIndex ( OrderedIndex
                     , fromTerms
@@ -13,11 +13,13 @@ import qualified Data.Set as S
 import qualified Data.Vector as V
 import Data.Hashable
 
-import           Control.Lens
+import Control.Lens
 import Data.List (tails)
 import Data.Foldable
 import Data.Monoid
-import Numeric.Log
+import Data.Binary
+import GHC.Generics (Generic)
+import Types
 
 import TermIndex (Score)
 import FreqMap (fFreqs, fTotal, FreqMap)
@@ -30,10 +32,21 @@ ngrams n = map (take n) . tails
 instance Hashable a => Hashable (V.Vector a) where
     hashWithSalt salt = hashWithSalt salt . V.toList
 
+instance (Hashable k, Eq k, Binary k, Binary v) => Binary (HashMap k v) where
+    get = HM.fromList `fmap` get
+    put = put . HM.toList
+
+instance (Binary v) => Binary (V.Vector v) where
+    get = V.fromList `fmap` get
+    put = put . V.toList
+
 newtype OrderedIndex doc term
         = OIdx { _oFreq :: (HashMap (V.Vector term) (FreqMap doc)) }
-        deriving (Show)
+        deriving (Show, Generic)
 makeLenses ''OrderedIndex
+
+instance (Hashable term, Eq term, Binary doc, Binary term)
+         => Binary (OrderedIndex doc term)
 
 instance (Hashable term, Eq term, Hashable doc, Eq doc, Ord doc)
          => Monoid (OrderedIndex doc term) where
