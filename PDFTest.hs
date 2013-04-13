@@ -1,18 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import System.Process
-import System.Environment
-import System.Exit
-import TermIndex as TI
-import Control.Applicative
-import Data.Foldable
-import Data.Monoid
-import Data.Function
-import Data.List
-import Data.Hashable
+import           Control.Applicative
+import           Data.Foldable
+import           Data.Function
+import           Data.Hashable
+import           Data.List
+import           Data.Monoid
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-import System.IO.Error
+import           System.Environment
+import           System.Exit
+import           System.IO.Error
+import           System.Process
+import           TermIndex as TI
 
 readPDF :: FilePath -> IO T.Text
 readPDF fname = spoon $ do
@@ -35,9 +35,7 @@ indexPDF fname = TI.indexTerms fname . T.words . T.toLower <$> readPDF fname
 
 main = do
     term:args <- getArgs
-    --Prelude.mapM_ (\fname->readPDF fname >>= print) args
     idx <- foldlM (\a fname->mappend a <$> indexPDF fname) mempty args
-    --print idx
     print $ take 10 $ topN idx (T.pack term)
 
 topN :: (Ord term, Ord doc)
