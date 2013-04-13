@@ -15,7 +15,7 @@ import Data.Hashable
 
 import Control.Lens
 import Data.List (tails)
-import Data.Foldable
+import Data.Foldable.Strict
 import Data.Monoid
 import Data.Binary
 import GHC.Generics (Generic)
@@ -66,9 +66,6 @@ fromNGram doc ngram = OIdx (HM.singleton ngram $ FM.singleton doc 1)
 firsts :: V.Vector a -> [V.Vector a]
 firsts xs | V.length xs < 2 = [xs]
           | otherwise       = map (\n->V.take n xs) [2..V.length xs]
-
-foldMap' :: (Monoid m, Foldable f) => (a -> m) -> f a -> m
-foldMap' f xs = foldl' (\a b->mappend a $ f b) mempty xs
 
 termsScore :: (Ord doc, Hashable term, Eq term)
            => Int -> Double -> CorpusStats doc term -> OrderedIndex doc term

@@ -25,7 +25,8 @@ library
                        MinIR.Dictionary,
                        MinIR.FreqMap,
                        MinIR.CorpusStats,
-                       MinIR.UnorderedIndex
+                       MinIR.UnorderedIndex,
+                       Data.Foldable.Strict
 
   build-depends:       base                          >= 4.6    && < 4.8,
                        text                          >= 0.11   && < 1.0,

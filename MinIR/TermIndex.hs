@@ -11,7 +11,7 @@ import qualified Data.Map.Strict as M
 import GHC.Generics (Generic)
 import Data.Binary (Binary)
 import Control.Lens hiding (index)
-import Data.Foldable
+import Data.Foldable.Strict
 import Data.Monoid
 
 import MinIR.Types
@@ -40,9 +40,6 @@ fromTerms doc terms = foldMap' (fromTerm doc) terms
 {-# INLINE fromTerm #-}
 fromTerm :: Ord doc => doc -> term -> TermIndex doc term
 fromTerm doc term = TIdx $ M.singleton term $ FM.singleton doc 1
-
-foldMap' :: (Monoid m, Foldable f) => (a -> m) -> f a -> m
-foldMap' f xs = Data.Foldable.foldl' (\a b->mappend a $ f b) mempty xs
 
 termsScore :: (Ord doc, Ord term)
            => Double -> CorpusStats doc term -> TermIndex doc term -> [term] -> Map doc Score

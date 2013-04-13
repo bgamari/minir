@@ -8,7 +8,7 @@ import Control.Applicative
 import Data.Binary
 import Data.Char
 import Data.Monoid
-import Data.Foldable
+import Data.Foldable.Strict
 import Data.Hashable (Hashable)
 import Control.Monad
 import System.FilePath
@@ -67,6 +67,3 @@ main = do
       , bench "decode"
           $ whnfIO (decodeFile "index" :: IO (TermIndex FilePath Term))
       ]
-
-foldMap' :: (Monoid m, Foldable f) => (a -> m) -> f a -> m
-foldMap' f xs = foldl' (\a b->mappend a $ f b) mempty xs

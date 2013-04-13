@@ -2,7 +2,7 @@ import Data.Function
 import Data.List
 import Data.Monoid
 import qualified Data.Set as S
-import Data.Foldable
+import Data.Foldable.Strict
 import qualified Data.Map.Strict as M
 import Control.Lens
 
@@ -28,6 +28,3 @@ main = do
     Prelude.mapM_ (print . sortBy (flip compare `on` snd) . TI.termScore 0.1 cstats idx) [1..5]
     print $ take 10 $ sortBy (flip compare `on` snd)
           $ M.toList $ OI.termsScore 2 0.1 cstats oidx [1..8]
-
-foldMap' :: (Monoid m, Foldable f) => (a -> m) -> f a -> m
-foldMap' f xs = Data.Foldable.foldl' (\a b->mappend a $ f b) mempty xs
