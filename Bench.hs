@@ -5,18 +5,19 @@ import qualified Data.Text.IO as TIO
 import qualified Data.Text as T
 import System.Directory
 import Control.Applicative
-import TermIndex as TI
 import Data.Binary
 import Data.Char
 import Data.Monoid
 import Data.Foldable
-import Data.List
 import Data.Hashable (Hashable)
 import Control.Monad
 import System.FilePath
 import Control.Monad.State.Strict
-import qualified Dictionary as D
 import Control.Lens
+
+import qualified Dictionary as D
+import qualified CorpusStats as CS
+import TermIndex as TI
 
 getTerms :: FilePath -> IO [(FilePath, [T.Text])]
 getTerms fname = do
@@ -46,13 +47,26 @@ main = do
                     mempty files
     putStrLn $ "Documents: "++show (length terms)
     putStrLn $ "Terms: "++show (Prelude.sum $ map (\(n,d)->length d) terms)
-    let idx = foldMap (uncurry TI.fromTerms) terms
-        smallTerms = map (\(n,d)->(n,take 100 d)) terms
-        smallIdx = foldMap (uncurry TI.fromTerms) smallTerms
+    let cstats = foldMap' (\(d,n)->CS.fromDocument d (length n)) terms
+        idx = foldMap' (uncurry TI.fromTerms) terms
+        smallTerms = map (\(d,n)->(d, take 100 n)) terms
+        smallIdx = foldMap' (uncurry TI.fromTerms) smallTerms
     smallIdx `seq` smallTerms `seq` return ()
     defaultMain
-      [ bench "index" $ whnf (foldMap (uncurry TI.fromTerms)) smallTerms
-      --, bench "query" $ nf (termScore 0.1 idx) term
-      , bench "encode" $ encodeFile "index" idx
-      , bench "decode" $ whnfIO (decodeFile "index" :: IO (TermIndex FilePath Term))
+      [ -- bench "build corpus stats"
+        --   $ whnf (foldMap' (\(d,n)->CS.fromDocument d (length n)))
+        --     smallTerms
+        bench "build term index"
+          $ whnf (foldMap' (uncurry TI.fromTerms)) smallTerms
+      --, bench "build both"
+      --    $ whnf (foldMap' (\(d,n)->(TI.fromTerms d n, CS.fromDocument d $ length n))) smallTerms
+      , bench "query"
+          $ nf (termScore 0.1 cstats idx) term
+      , bench "encode"
+          $ encodeFile "index" idx
+      , bench "decode"
+          $ whnfIO (decodeFile "index" :: IO (TermIndex FilePath Term))
       ]
+
+foldMap' :: (Monoid m, Foldable f) => (a -> m) -> f a -> m
+foldMap' f xs = foldl' (\a b->mappend a $ f b) mempty xs
