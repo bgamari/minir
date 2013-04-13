@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, TupleSections, FlexibleInstances, BangPatterns, RankNTypes #-}
+{-# LANGUAGE TemplateHaskell, DeriveGeneric #-}
 
 module SequentialDependence ( SeqDepIndex
                             , SeqDepParams
@@ -15,6 +15,8 @@ import Control.Lens
 import Data.List (tails)
 import Data.Foldable
 import Data.Monoid
+import Data.Binary
+import GHC.Generics (Generic)
 
 import Types
 import qualified CorpusStats as CS
@@ -27,7 +29,9 @@ data SeqDepIndex doc term
             , tIdx :: TI.TermIndex doc term
             , oIdx :: OI.OrderedIndex doc term
             }
-    deriving (Show)
+    deriving (Show, Generic)
+
+instance (Hashable term, Eq term, Binary doc, Binary term) => Binary (SeqDepIndex doc term)
 
 data SeqDepParams = SDParams { lambdaT, lambdaU, lambdaO :: Double }
                   deriving (Show)
