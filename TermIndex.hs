@@ -34,6 +34,8 @@ data TermIndex doc term
          deriving (Show, Generic)
 makeLenses ''TermIndex
 
+instance (Binary doc, Binary term) => Binary (TermIndex doc term)
+
 instance (Ord term, Ord doc) => Monoid (TermIndex doc term) where
     mempty = TermIdx M.empty M.empty 0 M.empty
     {-# INLINE mempty #-}
