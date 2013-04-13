@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, GeneralizedNewtypeDeriving #-}
 
 import           Criterion.Main
 import qualified Data.Text.IO as TIO
@@ -6,6 +6,7 @@ import qualified Data.Text as T
 import System.Directory
 import Control.Applicative
 import TermIndex as TI
+import Data.Binary
 import Data.Char
 import Data.Monoid
 import Data.Foldable
@@ -26,11 +27,13 @@ getTerms fname = do
                  $ T.toLower d
      return [(fname, terms)]
 
-term = 1
+term = Term 1
+
+newtype Term = Term Int deriving (Eq, Show, Enum, Ord, Binary)
 
 mapTerms :: (Eq term, Hashable term)
-         => [(doc, [term])] -> ([(doc, [D.Key])], D.Dictionary term)
-mapTerms terms = runState (terms & traverse . _2 . traverse %%~ (state . D.getKey)) D.empty
+         => [(doc, [term])] -> ([(doc, [Term])], D.Dictionary Term term)
+mapTerms terms = runState (terms & traverse . _2 . traverse %%~ (state . D.getKey)) (D.empty $ Term 0)
 
 getFiles :: IO [FilePath]
 getFiles = do
@@ -44,8 +47,12 @@ main = do
     putStrLn $ "Documents: "++show (length terms)
     putStrLn $ "Terms: "++show (Prelude.sum $ map (\(n,d)->length d) terms)
     let idx = foldMap (uncurry TI.indexTerms) terms
+        smallTerms = map (\(n,d)->(n,take 100 d)) terms
+        smallIdx = foldMap (uncurry TI.indexTerms) smallTerms
+    smallIdx `seq` smallTerms `seq` return ()
     defaultMain
-      [ bench "index" $ whnf (foldMap (uncurry TI.indexTerms))
-                      $ map (\(n,d)->(n,take 100 d)) terms
+      [ bench "index" $ whnf (foldMap (uncurry TI.indexTerms)) smallTerms
       , bench "query" $ nf (termScore 0.1 idx) term
+      , bench "encode" $ encodeFile "index" idx
+      , bench "decode" $ whnfIO (decodeFile "index" :: IO (TermIndex FilePath Term))
       ]
