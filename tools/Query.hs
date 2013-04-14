@@ -1,7 +1,7 @@
 import qualified Data.Text as T
 import Data.Binary
 import Data.Hashable (Hashable)
-import Data.List (sortBy)
+import Data.List (foldl')
 import Data.Text.Binary
 import System.Environment (getArgs)
 import Data.Function (on)
@@ -12,8 +12,10 @@ import MinIR.Types
 main = do
     terms <- getArgs
     idx <- decodeFile "index" :: IO (SeqDepIndex String T.Text)
-    mapM_ print $ take 10 $ topN idx $ map T.pack terms
+    mapM_ print $ maxN (compare `on` snd) 20
+                $ scoreTerms defaultParams idx $ map T.pack terms
 
-topN :: (Ord term, Ord doc, Hashable term, Eq term)
-     => SeqDepIndex doc term -> [term] -> [(doc, Score)]
-topN idx = sortBy (flip compare `on` snd) . scoreTerms defaultParams idx
+maxN :: (a -> a -> Ordering) -> Int -> [a] -> [a]
+maxN f n = foldl' go []
+  where go xs x = let (as,bs) = break (\y->f x y == GT) xs
+                  in take n $ as++[x]++bs
