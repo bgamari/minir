@@ -11,7 +11,7 @@ import MinIR.Types
 
 main = do
     terms <- getArgs
-    idx <- decodeFile "index" :: IO (SeqDepIndex String T.Text)
+    idx <- decodeFile "index" :: IO (SeqDepIndex T.Text T.Text)
     mapM_ print $ maxN (compare `on` snd) 20
                 $ scoreTerms defaultParams idx $ map T.pack terms
 

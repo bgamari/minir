@@ -40,9 +40,9 @@ readTerms fname
     | otherwise                   = do putStrLn $ "Unknown file type: "++fname
                                        return T.empty
 
-indexFile :: FilePath -> IO (SeqDepIndex String T.Text)
+indexFile :: FilePath -> IO (SeqDepIndex T.Text T.Text)
 indexFile fname =
-    SD.fromDocument 2 fname . extractTerms <$> readTerms fname
+    SD.fromDocument 2 (T.pack fname) . extractTerms <$> readTerms fname
 
 extractTerms :: T.Text -> [T.Text]
 extractTerms =
