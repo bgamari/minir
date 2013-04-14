@@ -1,7 +1,7 @@
 import           Control.Applicative
 import           Data.Foldable
 import           Data.Function
-import           Data.Hashable
+import           Data.Char
 import           Data.List
 import           Data.Monoid
 import qualified Data.Text as T
@@ -33,12 +33,27 @@ readPDF fname = spoon $ do
                                         return T.empty
                        Right res  -> return res
 
-indexPDF :: FilePath -> IO (SeqDepIndex String T.Text)
-indexPDF fname = SD.fromDocument 2 fname . T.words . T.toLower <$> readPDF fname
+readTerms :: FilePath -> IO T.Text
+readTerms fname
+    | ".pdf" `isSuffixOf` fname   = readPDF fname
+    | ".txt" `isSuffixOf` fname   = TIO.readFile fname
+    | otherwise                   = do putStrLn $ "Unknown file type: "++fname
+                                       return T.empty
+
+indexFile :: FilePath -> IO (SeqDepIndex String T.Text)
+indexFile fname =
+    SD.fromDocument 2 fname . extractTerms <$> readPDF fname
+
+extractTerms :: T.Text -> [T.Text]
+extractTerms =
+    filter (\a->T.length a > 2 && T.length a < 20)
+    . map (T.filter isAlpha)
+    . T.words
+    . T.toLower
 
 main = do
     exists <- doesFileExist "index"
     idx <- if exists then decodeFile "index" else return mempty
     files <- getArgs
-    idx' <- foldlM (\a fname->mappend a <$> indexPDF fname) mempty files
+    idx' <- foldlM (\a fname->mappend a <$> indexFile fname) mempty files
     encodeFile "index" (idx <> idx')
