@@ -27,7 +27,7 @@ import MinIR.CorpusStats
 import qualified MinIR.FreqMap as FM
 
 ngrams :: Int -> [a] -> [[a]]
-ngrams n = map (take n) . tails
+ngrams n = filter (\a->length a == 2) . map (take n) . tails
 
 instance Hashable a => Hashable (V.Vector a) where
     hashWithSalt salt = hashWithSalt salt . V.toList
