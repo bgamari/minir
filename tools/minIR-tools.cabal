@@ -14,10 +14,10 @@ cabal-version:       >=1.10
 
 executable minir-query
   main-is:             Query.hs
-  build-depends:       base ==4.6.*, text ==0.11.*, binary ==0.7.*, hashable ==1.2.*, text-binary ==0.1.*, process ==1.1.*, directory ==1.2.*, minIR
+  build-depends:       base ==4.6.*, text ==0.11.*, binary ==0.7.*, hashable ==1.2.*, text-binary ==0.1.*, process ==1.1.*, directory ==1.2.*, mtl, lens, minIR, stemmer
   default-language:    Haskell2010
 
 executable minir-index
   main-is:             Index.hs
-  build-depends:       base ==4.6.*, text ==0.11.*, binary ==0.7.*, hashable ==1.2.*, text-binary ==0.1.*, process ==1.1.*, directory ==1.2.*, minIR
+  build-depends:       base ==4.6.*, text ==0.11.*, binary ==0.7.*, hashable ==1.2.*, text-binary ==0.1.*, process ==1.1.*, directory ==1.2.*, mtl, lens, minIR, stemmer
   default-language:    Haskell2010

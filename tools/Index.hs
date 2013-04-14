@@ -14,6 +14,7 @@ import           Data.Binary
 import           System.Directory
 import           Data.Text.Binary
 
+import           NLP.Stemmer
 import           MinIR.SequentialDependence as SD
 import           MinIR.Types
 
@@ -46,7 +47,8 @@ indexFile fname =
 
 extractTerms :: T.Text -> [T.Text]
 extractTerms =
-    filter (\a->T.length a > 2 && T.length a < 20)
+      map T.pack . stemWords English . map T.unpack
+    . filter (\a->T.length a > 2 && T.length a < 20)
     . map (T.filter isAlpha)
     . T.words
     . T.toLower
