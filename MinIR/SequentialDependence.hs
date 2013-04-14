@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell, DeriveGeneric #-}
 
-module MinIR.SequentialDependence ( SeqDepIndex
-                                  , SeqDepParams
+module MinIR.SequentialDependence ( SeqDepIndex(..)
+                                  , SeqDepParams(..)
                                   , defaultParams
                                   , fromDocument
                                   , scoreTerms
