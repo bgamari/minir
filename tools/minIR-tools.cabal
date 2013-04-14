@@ -17,7 +17,7 @@ executable minir-query
   build-depends:       base ==4.6.*, text ==0.11.*, binary ==0.7.*, hashable ==1.2.*, text-binary ==0.1.*, process ==1.1.*, directory ==1.2.*, minIR
   default-language:    Haskell2010
 
-executable minir-pdfindex
-  main-is:             PDFIndex.hs
+executable minir-index
+  main-is:             Index.hs
   build-depends:       base ==4.6.*, text ==0.11.*, binary ==0.7.*, hashable ==1.2.*, text-binary ==0.1.*, process ==1.1.*, directory ==1.2.*, minIR
   default-language:    Haskell2010
