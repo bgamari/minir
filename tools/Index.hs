@@ -42,7 +42,7 @@ readTerms fname
 
 indexFile :: FilePath -> IO (SeqDepIndex String T.Text)
 indexFile fname =
-    SD.fromDocument 2 fname . extractTerms <$> readPDF fname
+    SD.fromDocument 2 fname . extractTerms <$> readTerms fname
 
 extractTerms :: T.Text -> [T.Text]
 extractTerms =
