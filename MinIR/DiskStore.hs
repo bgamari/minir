@@ -38,6 +38,10 @@ instance Binary (Obj a)
 withReadLock :: DiskStore root -> IO b -> IO b
 withReadLock dstore m = withMVar (readLock dstore) (const m)
 
+-- We need to be very careful here as we use lazy I/O
+-- If the returned structure isn't evaluated completely,
+-- we may attempt to read a block after the file position has
+-- been moved elsewhere.
 getObj :: Binary a => DiskStore root -> Obj a -> IO a
 getObj dstore (Obj offset) = withReadLock dstore $ do
     hSeek (handle dstore) AbsoluteSeek (fromIntegral offset)
@@ -92,14 +96,14 @@ getRoot dstore = do
       Just hdr -> case root hdr of
                     Just o  -> Just <$> getObj dstore o
                     Nothing -> return Nothing
-      Nothing  -> fail "Invalid header"
+      Nothing  -> fail "DiskStore: Invalid header"
 
-setRoot :: DiskStore a -> Maybe (Obj a) -> IO (Maybe ())
+setRoot :: DiskStore a -> Maybe (Obj a) -> IO ()
 setRoot dstore root = do
     header <- getHeader dstore
     case header of
-      Just hdr -> Just <$> putHeader dstore (hdr {root=root})
-      Nothing  -> return Nothing
+      Just hdr -> putHeader dstore (hdr {root=root})
+      Nothing  -> error "DiskStore: Invalid header"
 
 fromHandle :: Handle -> IO (Maybe (DiskStore a))
 fromHandle h = do
