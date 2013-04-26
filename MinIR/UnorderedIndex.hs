@@ -27,7 +27,7 @@ ngrams :: Int -> Int -> [a] -> [[a]]
 ngrams k n =
 
 newtype UnorderedIndex doc term
-        = UIdx { _oFreq :: (Map (S.Set term) (FreqMap doc)) }
+        = UIdx { _oFreq :: !(Map (S.Set term) (FreqMap doc)) }
         deriving (Show, Generic)
 makeLenses ''UnorderedIndex
 
