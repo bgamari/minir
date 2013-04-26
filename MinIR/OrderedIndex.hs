@@ -41,7 +41,7 @@ instance (Binary v) => Binary (V.Vector v) where
     put = put . V.toList
 
 newtype OrderedIndex doc term
-        = OIdx { _oFreq :: (HashMap (V.Vector term) (FreqMap doc)) }
+        = OIdx { _oFreq :: !(HashMap (V.Vector term) (FreqMap doc)) }
         deriving (Show, Generic)
 makeLenses ''OrderedIndex
 
