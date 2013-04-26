@@ -7,7 +7,9 @@ import System.Environment (getArgs)
 import Data.Function (on)
 
 import MinIR.SequentialDependence as SD
+import MinIR.Dictionary as D
 import MinIR.Types
+import Types
 import NLP.Stemmer
 
 main = do

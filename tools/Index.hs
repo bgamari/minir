@@ -17,6 +17,7 @@ import           Data.Text.Binary
 import           NLP.Stemmer
 import           MinIR.SequentialDependence as SD
 import           MinIR.Types
+import           Types
 
 readPDF :: FilePath -> IO T.Text
 readPDF fname = spoon $ do
