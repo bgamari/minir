@@ -5,7 +5,7 @@ module MinIR.BlobStore.Reader ( StoreReader
                               , FetchError(..)
                               ) where
 
-import MinIR.BlobStore.Types
+import Control.Error
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as LBS
 import System.IO.MMap
@@ -14,12 +14,13 @@ import Data.Binary.Get
 import Control.Monad (when)
 import Control.Monad.Trans.Maybe
 import Control.Monad.IO.Class
+import MinIR.BlobStore.Types
 
 data StoreReader = StoreReader { storeMap   :: !BS.ByteString
                                }
 
-open :: MonadIO m => FilePath -> m (Maybe StoreReader)
-open fname = runMaybeT $ do
+open :: MonadIO m => FilePath -> EitherT String m StoreReader
+open fname = do
     bs <- liftIO $ mmapFileByteString fname Nothing
     return $ StoreReader bs
 
