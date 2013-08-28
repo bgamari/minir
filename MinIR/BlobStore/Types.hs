@@ -7,6 +7,11 @@ import Control.Applicative
 type Offset = Word64
 
 newtype StoreRef = SRef Offset
+                 deriving (Show, Eq, Ord)
+                 
+instance Binary StoreRef where
+    get = SRef <$> get
+    put (SRef o) = put o
 
 magic :: Word64        
 magic = 0xfeed1234dadaffff
