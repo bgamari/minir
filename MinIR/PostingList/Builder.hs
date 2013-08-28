@@ -16,22 +16,22 @@ import MinIR.BlobStore as Blob
 import MinIR.PostingList.Types
 
 -- | A 'Producer' generating pairs of terms and a 'Producer' emitting
--- 'DocTerms'.
+-- 'Postings'.
 --
--- The 'Terms' must be emitted in order, as must the 'DocTerms'.
-type PostingProducer m = Producer (TermId, Producer DocTerm m ()) m
+-- The terms must be emitted in order, as must the 'Postings'.
+type PostingProducer doc term m = Producer (term, Producer (Posting doc) m ()) m
 
 -- | Build a posting list given a set of 'PostingProducers'. Each of these
 -- must be annotated with a size 
-build :: MonadIO m
+build :: (MonadIO m, Binary term, Ord term, Binary doc, Ord doc)
       => FilePath
-      -> [(Int, PostingProducer m ())]
+      -> [(Int, PostingProducer doc term m ())]
       -> EitherT String m ()
 build destDir sizedProducers = do
     postingStore <- liftIO $ Blob.openWriter (destDir++"/postings.blob")
-    let groupTerms :: Monad m
-                   => [PostingProducer m ()]
-                   -> Producer [(TermId, Producer DocTerm m ())] m ()
+    let groupTerms :: (Monad m, Ord term)
+                   => [PostingProducer doc term m ()]
+                   -> Producer [(term, Producer (Posting doc) m ())] m ()
         groupTerms = groupBy ((==) `on` fst) . interleave (comparing fst)
 
     let producers = map snd sizedProducers
@@ -39,10 +39,10 @@ build destDir sizedProducers = do
         writtenTerms = mapMP (accumAndWriteTerms postingStore) (groupTerms producers)
     lift $ BTree.fromOrderedToFile 100 size (destDir++"/index.btree") writtenTerms
 
-accumAndWriteTerms :: MonadIO m
+accumAndWriteTerms :: (MonadIO m, Ord doc, Binary doc)
                    => StoreWriter
-                   -> [(TermId, Producer DocTerm m ())]
-                   -> m (BTree.BLeaf TermId StoreRef)
+                   -> [(term, Producer (Posting doc) m ())]
+                   -> m (BTree.BLeaf term StoreRef)
 accumAndWriteTerms postingStore postings@((term,_):_) = do
     sref <- store postingStore $ mergeDocTerms (map snd postings) >-> PP.map encode
     return $ BTree.BLeaf term sref
@@ -56,9 +56,11 @@ mapMP f = go
             Right (x, prod') -> do lift (f x) >>= yield >> go prod'
             
 
-mergeDocTerms :: Monad m => [Producer DocTerm m ()] -> Producer DocTerm m ()
+mergeDocTerms :: (Monad m, Ord doc)
+              => [Producer (Posting doc) m ()]
+              -> Producer (Posting doc) m ()
 mergeDocTerms = merge (comparing docId) addDocTerms
-  where addDocTerms :: Monad m => DocTerm -> DocTerm -> m DocTerm
-        addDocTerms (DocTerm n1 doc) (DocTerm n2 _) = return $ DocTerm (n1+n2) doc
-        docId :: DocTerm -> DocumentId
-        docId (DocTerm _ d) = d
+  where addDocTerms :: Monad m => Posting doc -> Posting doc -> m (Posting doc)
+        addDocTerms (Posting n1 doc) (Posting n2 _) = return $ Posting (n1+n2) doc
+        docId :: Posting doc -> doc
+        docId (Posting _ d) = d

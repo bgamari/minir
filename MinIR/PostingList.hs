@@ -1,5 +1,5 @@
 module MinIR.PostingList ( -- * Reading posting lists
-                           PostingListReader
+                           PostingList
                          , lookup
                          , toProducer
                            -- * Building posting lists

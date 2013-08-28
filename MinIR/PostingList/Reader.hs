@@ -1,4 +1,4 @@
-module MinIR.PostingList.Reader ( PostingListReader
+module MinIR.PostingList.Reader ( PostingList
                                 , lookup
                                 , toProducer
                                 ) where
@@ -18,40 +18,41 @@ import MinIR.PostingList.Types
 import MinIR.BlobStore.Reader as Blob
 import qualified MinIR.Stream as Stream
 
-data PostingListReader = PLR { plrIndex     :: BTree.LookupTree TermId StoreRef
-                             , plrPostings  :: Blob.StoreReader
-                             }
+data PostingList doc term = PL { plIndex     :: BTree.LookupTree term StoreRef
+                               , plPostings  :: Blob.StoreReader
+                               }
 
-open :: FilePath -> EitherT String IO PostingListReader
+open :: FilePath -> EitherT String IO (PostingList doc term)
 open dir = do
     index <- EitherT $ BTree.open (dir++"/index.btree")
     postings <- Blob.open (dir++"/postings.blob")
-    return $ PLR index postings
+    return $ PL index postings
 
-lookup :: Monad m
-       => PostingListReader -> TermId -> Maybe (Producer DocTerm m (Either String ()))
-lookup plr term =
-    case BTree.lookup (plrIndex plr) term of
+lookup :: (Monad m, Ord term, Binary term, Binary doc)
+       => PostingList doc term -> term -> Maybe (Producer (Posting doc) m (Either String ()))
+lookup pl term =
+    case BTree.lookup (plIndex pl) term of
       Nothing   -> Nothing
-      Just sref -> hush $ produceDocTerms plr sref
+      Just sref -> hush $ produceDocTerms pl sref
 
 -- | Produce
-toProducer :: Monad m
-           => PostingListReader
-           -> Producer (TermId, Producer DocTerm m (Either String ())) m ()
-toProducer plr =
-    void (BTree.walkLeaves (plrIndex plr))
+toProducer :: (Monad m, Binary term, Binary doc)
+           => PostingList doc term
+           -> Producer (term, Producer (Posting doc) m (Either String ())) m ()
+toProducer pl =
+    void (BTree.walkLeaves (plIndex pl))
     >-> PP.map f
   where f (BTree.BLeaf term sref) =
-            case produceDocTerms plr sref of
+            case produceDocTerms pl sref of
               Left _      -> error "PostingList.Reader.toProducer: This should never happen"
               Right prod  -> (term, prod)
 
-produceDocTerms :: Monad m
-                => PostingListReader -> StoreRef
-                -> Either Blob.FetchError (Producer DocTerm m (Either String ()))
-produceDocTerms plr sref = do
-    bs <- Blob.fetch (plrPostings plr) sref
+produceDocTerms :: (Monad m, Binary doc)
+                => PostingList doc term
+                -> StoreRef
+                -> Either Blob.FetchError (Producer (Posting doc) m (Either String ()))
+produceDocTerms pl sref = do
+    bs <- Blob.fetch (plPostings pl) sref
     return $ fmap (fmapR (const ())) $ readBinary $ LBS.fromStrict bs
 
 -- | Return a 'Producer' producing elements decoded with the 'Binary' instance
