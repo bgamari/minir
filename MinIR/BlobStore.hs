@@ -10,11 +10,12 @@ module MinIR.BlobStore (
                        , store
                        ) where
 
+import Control.Error
 import MinIR.BlobStore.Reader
 import MinIR.BlobStore.Writer
 import Control.Monad.IO.Class
 
-openReader :: MonadIO m => FilePath -> m (Maybe StoreReader)
+openReader :: MonadIO m => FilePath -> EitherT String m StoreReader
 openReader = MinIR.BlobStore.Reader.open
 
 openWriter :: MonadIO m => FilePath -> m StoreWriter
