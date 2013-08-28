@@ -4,12 +4,15 @@ module MinIR.PostingList.Builder ( build
 
 import Data.Function (on)
 import Data.Ord (comparing)
+import Control.Monad (when)
 import Control.Monad.IO.Class
 import Control.Error
-import Pipes
-import qualified Pipes.Prelude as PP
-import Pipes.Interleave
+import System.Directory
 import Data.Binary
+
+import Pipes
+import Pipes.Interleave
+import qualified Pipes.Prelude as PP
 import qualified BTree
 import qualified MinIR.PostingList.Reader as Reader
 import MinIR.BlobStore as Blob
@@ -28,6 +31,9 @@ build :: (MonadIO m, Binary term, Ord term, Binary doc, Ord doc)
       -> [(Int, PostingProducer doc term m ())]
       -> EitherT String m ()
 build destDir sizedProducers = do
+    exists <- liftIO $ doesDirectoryExist destDir
+    when exists $ left "PostingList.Builder: destination already exists"
+    liftIO $ createDirectoryIfMissing True destDir
     postingStore <- liftIO $ Blob.openWriter (destDir++"/postings.blob")
     let groupTerms :: (Monad m, Ord term)
                    => [PostingProducer doc term m ()]
