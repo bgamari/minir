@@ -34,4 +34,5 @@ fetch (StoreReader bs) (SRef offset) = do
     sinfo <- case runGetOrFail get $ LBS.fromStrict $ BS.drop (fromIntegral offset) bs of
                Left (_,_,e)   -> Left (InvalidEncoding e)
                Right (_,_,a)  -> Right a
-    return $ BS.drop (fromIntegral $ storeStart sinfo) bs
+    return $ BS.take (fromIntegral $ storeLength sinfo)
+           $ BS.drop (fromIntegral $ storeStart sinfo) bs
