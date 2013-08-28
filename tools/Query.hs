@@ -15,6 +15,8 @@ import NLP.Stemmer
 main = do
     terms <- getArgs
     idx <- decodeFile "index" :: IO (SeqDepIndex T.Text T.Text)
+    --termDict <- decodeFile "terms.dict" :: IO (SeqDepIndex Doc Term)
+    --let terms' = D.lookupTerm key
     mapM_ print $ maxN (compare `on` snd) 20
                 $ scoreTerms defaultParams idx $ map T.pack $ stemWords English terms
 
