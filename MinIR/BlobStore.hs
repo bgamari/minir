@@ -7,6 +7,7 @@ module MinIR.BlobStore (
                          -- * Writing
                        , StoreWriter
                        , openWriter
+                       , closeWriter
                        , store
                        ) where
 
@@ -20,3 +21,6 @@ openReader = MinIR.BlobStore.Reader.open
 
 openWriter :: MonadIO m => FilePath -> m StoreWriter
 openWriter = MinIR.BlobStore.Writer.open
+
+closeWriter :: MonadIO m => StoreWriter -> m ()
+closeWriter = MinIR.BlobStore.Writer.close

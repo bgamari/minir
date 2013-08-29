@@ -1,6 +1,7 @@
 module MinIR.BlobStore.Writer ( StoreWriter
                               , StoreRef
                               , open
+                              , close
                               , store
                               ) where
 
@@ -23,6 +24,11 @@ open fname = liftIO $ do
     writeLock <- newTMVarIO ()
     return $ StoreWriter h writeLock
 
+close :: MonadIO m => StoreWriter -> m ()
+close f = liftIO $ do
+    atomically $ takeTMVar $ storeWriteLock f
+    hClose $ storeHandle f
+    
 store :: MonadIO m
       => StoreWriter
       -> Producer LBS.ByteString m ()
