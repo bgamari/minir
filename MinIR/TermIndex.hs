@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TupleSections, FlexibleInstances, BangPatterns, DeriveGeneric, RankNTypes #-}
 
-module MinIR.TermIndex ( TermIndex, tFreq
+module MinIR.TermIndex ( TermIndex, tFreq, termsSize
                        , Score, termsScore, termScore, termDocScore
                        , fromTerms, fromTerm
                        ) where
@@ -20,6 +20,7 @@ import qualified MinIR.FreqMap as FM
 import MinIR.CorpusStats (CorpusStats)
 import qualified MinIR.CorpusStats as CS
 
+-- | Inverted index over terms
 newtype TermIndex doc term
         = TIdx { _tFreq :: Map term (FreqMap doc) }
         deriving (Show, Generic)
@@ -33,13 +34,20 @@ instance (Ord doc, Ord term) => Monoid (TermIndex doc term) where
     TIdx a `mappend` TIdx b = TIdx (M.unionWith mappend a b)
     {-# INLINE mappend #-}
 
-{-# INLINE fromTerms #-}
+-- | Construct a 'TermIndex' from a document and a set of observed terms
 fromTerms :: (Ord doc, Ord term) => doc -> [term] -> TermIndex doc term
 fromTerms doc terms = foldMap' (fromTerm doc) terms
+{-# INLINE fromTerms #-}
 
-{-# INLINE fromTerm #-}
+-- | Construct a 'TermIndex' from a document and an observed term
 fromTerm :: Ord doc => doc -> term -> TermIndex doc term
 fromTerm doc term = TIdx $ M.singleton term $ FM.singleton doc 1
+{-# INLINE fromTerm #-}
+
+-- | Number of terms in the index
+termsSize :: Ord term => TermIndex doc term -> Int
+termsSize (TIdx a) = M.size a 
+{-# INLINE termsSize #-}
 
 termsScore :: (Ord doc, Ord term)
            => Double -> CorpusStats doc term -> TermIndex doc term -> [term] -> Map doc Score
