@@ -44,6 +44,7 @@ build destDir sizedProducers = do
         size = fromIntegral $ sum $ map fst sizedProducers
         writtenTerms = mapMP (accumAndWriteTerms postingStore) (groupTerms producers)
     lift $ BTree.fromOrderedToFile 100 size (destDir++"/index.btree") writtenTerms
+    Blob.closeWriter postingStore
 
 accumAndWriteTerms :: (MonadIO m, Ord doc, Binary doc)
                    => StoreWriter
