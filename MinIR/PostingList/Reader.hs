@@ -1,4 +1,5 @@
 module MinIR.PostingList.Reader ( PostingList
+                                , open
                                 , lookup
                                 , toProducer
                                 ) where
@@ -15,10 +16,10 @@ import Pipes
 import qualified Pipes.Prelude as PP
 import qualified BTree
 import MinIR.PostingList.Types
-import MinIR.BlobStore.Reader as Blob
+import qualified MinIR.BlobStore.Reader as Blob
 import qualified MinIR.Stream as Stream
 
-data PostingList doc term = PL { plIndex     :: BTree.LookupTree term StoreRef
+data PostingList doc term = PL { plIndex     :: BTree.LookupTree term Blob.StoreRef
                                , plPostings  :: Blob.StoreReader
                                }
 
@@ -29,7 +30,9 @@ open dir = do
     return $ PL index postings
 
 lookup :: (Monad m, Ord term, Binary term, Binary doc)
-       => PostingList doc term -> term -> Maybe (Producer (Posting doc) m (Either String ()))
+       => PostingList doc term
+       -> term
+       -> Maybe (Producer (Posting doc) m (Either String ()))
 lookup pl term =
     case BTree.lookup (plIndex pl) term of
       Nothing   -> Nothing
@@ -49,7 +52,7 @@ toProducer pl =
 
 produceDocTerms :: (Monad m, Binary doc)
                 => PostingList doc term
-                -> StoreRef
+                -> Blob.StoreRef
                 -> Either Blob.FetchError (Producer (Posting doc) m (Either String ()))
 produceDocTerms pl sref = do
     bs <- Blob.fetch (plPostings pl) sref

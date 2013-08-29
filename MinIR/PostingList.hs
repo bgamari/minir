@@ -2,6 +2,7 @@ module MinIR.PostingList ( -- * Postings
                            Posting(..)
                            -- * Reading posting lists
                          , PostingList
+                         , open
                          , lookup
                          , toProducer
                            -- * Building posting lists
