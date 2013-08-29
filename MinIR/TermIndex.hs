@@ -3,6 +3,8 @@
 module MinIR.TermIndex ( TermIndex, tFreq, termsSize
                        , Score, termsScore, termScore, termDocScore
                        , fromTerms, fromTerm
+                         -- * Converting to 'PostingList'
+                       , termIndexToProducer
                        ) where
 
 import           Data.Map.Strict (Map)
@@ -13,12 +15,15 @@ import Data.Binary (Binary)
 import Control.Lens hiding (index)
 import Data.Foldable.Strict
 import Data.Monoid
+import qualified Pipes
 
 import MinIR.Types
 import MinIR.FreqMap (fFreqs, fTotal, FreqMap)
 import qualified MinIR.FreqMap as FM
 import MinIR.CorpusStats (CorpusStats)
 import qualified MinIR.CorpusStats as CS
+
+import qualified MinIR.PostingList as PL
 
 -- | Inverted index over terms
 newtype TermIndex doc term
@@ -46,7 +51,7 @@ fromTerm doc term = TIdx $ M.singleton term $ FM.singleton doc 1
 
 -- | Number of terms in the index
 termsSize :: Ord term => TermIndex doc term -> Int
-termsSize (TIdx a) = M.size a 
+termsSize (TIdx a) = M.size a
 {-# INLINE termsSize #-}
 
 termsScore :: (Ord doc, Ord term)
@@ -71,3 +76,12 @@ termDocScore alphaD stats idx term doc =
 
 def :: a -> Getter (Maybe a) a
 def a = to (maybe a id)
+
+termIndexToProducer :: (Monad m, Ord term)
+                    => TermIndex doc term
+                    -> (Int, PL.PostingProducer doc term m ())
+termIndexToProducer tidx = (termsSize tidx, producer)
+  where producer = Pipes.each $ map (\(term,freqMap)->(term, postingProducer freqMap))
+                   $ M.assocs (tidx ^. tFreq)
+        postingProducer = Pipes.each . map (\(doc,n)->PL.Posting n doc)
+                                     . M.assocs . view FM.fFreqs

@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}            
+{-# LANGUAGE DeriveGeneric, GeneralizedNewtypeDeriving #-}
 
 import Control.Monad
 import Control.Monad.IO.Class
@@ -15,17 +15,18 @@ import MinIR.FreqMap as FM
 import MinIR.TermIndex as TI
 import Pipes
 import qualified Pipes.Prelude as PP
+import qualified Pipes.Prelude as PP
+import System.Random.MWC
+import Data.Monoid
 
-newtype DocId = DocId Int deriving (Show, Ord, Eq, Generic)
+newtype DocId = DocId Int deriving (Show, Ord, Eq, Generic, Enum)
 instance Binary DocId
-newtype TermId = TermId Int deriving (Show, Ord, Eq, Generic)
+newtype TermId = TermId Int deriving (Show, Ord, Eq, Generic, Enum)
 instance Binary TermId
 
 termIdx :: TermIndex DocId TermId
 termIdx =
     F.foldMap' (\(d,t)->TI.fromTerm (DocId d) (TermId t))
-    $ take 100000
-    $ cycle
     [ (0, 0)
     , (0, 1)
     , (0, 3)
@@ -36,20 +37,21 @@ termIdx =
     , (2, 2)
     , (2, 5)
     ]
-
-termIndexToProducer :: (Monad m, Ord term)
-                    => TermIndex doc term
-                    -> (Int, PL.PostingProducer doc term m ())
-termIndexToProducer tidx = (TI.termsSize tidx, producer)
-  where producer = each $ map (\(term,freqMap)->(term, postingProducer freqMap))
-                   $ M.assocs (tidx ^. tFreq)
-        postingProducer = each . map (\(doc,n)->PL.Posting n doc)
-                               . M.assocs . view FM.fFreqs
+    
+randomTermIndex :: DocId -> TermId -> Int -> IO (TermIndex DocId TermId)
+randomTermIndex docs terms draws =
+    withSystemRandom $ asGenIO $ \mwc->do
+      foldM (draw mwc) mempty [1..draws]
+  where draw mwc tidx _ = do
+          doc <- uniformR (0, fromEnum docs) mwc
+          term <- uniformR (0, fromEnum terms) mwc
+          return $! tidx `mappend` TI.fromTerm (toEnum doc) (toEnum term)
 
 main = print =<< runEitherT go
 
 go = do
-    a <- PL.build "hello" [termIndexToProducer termIdx]
+    termIndex <- liftIO $ randomTermIndex (DocId 50000) (TermId 10000) 2000000
+    a <- PL.build "hello" [TI.termIndexToProducer termIndex]
     liftIO $ print a
 
     pl <- PL.open "hello" :: EitherT String IO (PL.PostingList DocId TermId)

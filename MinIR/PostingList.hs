@@ -14,3 +14,4 @@ import Prelude hiding (lookup)
 import MinIR.PostingList.Types
 import MinIR.PostingList.Reader
 import MinIR.PostingList.Builder
+
