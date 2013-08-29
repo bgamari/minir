@@ -17,10 +17,19 @@ cabal-version:       >=1.10
 
 library
   default-language:    Haskell2010
+  other-modules:       MinIR.PostingList.Reader,
+                       MinIR.PostingList.Builder,
+                       MinIR.PostingList.Types,
+                       MinIR.BlobStore.Reader,
+                       MinIR.BlobStore.Writer,
+                       MinIR.BlobStore.Types
+
   exposed-modules:     MinIR.Types,
+                       MinIR.BlobStore,
                        MinIR.NGramTrie,
                        MinIR.SequentialDependence,
                        MinIR.OrderedIndex,
+                       MinIR.PostingList,
                        MinIR.TermIndex,
                        MinIR.Dictionary,
                        MinIR.FreqMap,
