@@ -1,5 +1,6 @@
-module MinIR.PostingList ( -- * Postings
+module MinIR.PostingList ( -- * Basic types
                            Posting(..)
+                         , PostingListDir
                            -- * Reading posting lists
                          , PostingList
                          , open

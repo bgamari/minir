@@ -3,6 +3,10 @@ module MinIR.PostingList.Types where
 import Data.Binary
 import Control.Applicative
 
+-- | A directory containing a posting list
+type PostingListDir = FilePath
+
+-- | A document and count
 data Posting doc = Posting !Int !doc
                  deriving (Show)
      

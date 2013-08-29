@@ -27,7 +27,7 @@ type PostingProducer doc term m = Producer (term, Producer (Posting doc) m ()) m
 -- | Build a posting list given a set of 'PostingProducers'. Each of these
 -- must be annotated with a size 
 build :: (MonadIO m, Binary term, Ord term, Binary doc, Ord doc)
-      => FilePath
+      => PostingListDir
       -> [(Int, PostingProducer doc term m ())]
       -> EitherT String m ()
 build destDir sizedProducers = do

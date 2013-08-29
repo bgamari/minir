@@ -23,7 +23,7 @@ data PostingList doc term = PL { plIndex     :: BTree.LookupTree term Blob.Store
                                , plPostings  :: Blob.StoreReader
                                }
 
-open :: FilePath -> EitherT String IO (PostingList doc term)
+open :: PostingListDir -> EitherT String IO (PostingList doc term)
 open dir = do
     index <- EitherT $ BTree.open (dir++"/index.btree")
     postings <- Blob.open (dir++"/postings.blob")
