@@ -4,7 +4,7 @@ module MinIR.TermIndex ( TermIndex, tFreq, termsSize
                        , Score, termsScore, termScore, termDocScore
                        , fromTerms, fromTerm
                          -- * Converting to 'PostingList'
-                       , termIndexToProducer
+                       , toProducer
                        ) where
 
 import           Data.Map.Strict (Map)
@@ -77,10 +77,10 @@ termDocScore alphaD stats idx term doc =
 def :: a -> Getter (Maybe a) a
 def a = to (maybe a id)
 
-termIndexToProducer :: (Monad m, Ord term)
-                    => TermIndex doc term
-                    -> (Int, PL.PostingProducer doc term m ())
-termIndexToProducer tidx = (termsSize tidx, producer)
+toProducer :: (Monad m, Ord term)
+           => TermIndex doc term
+           -> (Int, PL.PostingProducer doc term m ())
+toProducer tidx = (termsSize tidx, producer)
   where producer = Pipes.each $ map (\(term,freqMap)->(term, postingProducer freqMap))
                    $ M.assocs (tidx ^. tFreq)
         postingProducer = Pipes.each . map (\(doc,n)->PL.Posting n doc)

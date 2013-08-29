@@ -51,7 +51,7 @@ main = print =<< runEitherT go
 
 go = do
     termIndex <- liftIO $ randomTermIndex (DocId 50000) (TermId 10000) 2000000
-    a <- PL.build "hello" [TI.termIndexToProducer termIndex]
+    a <- PL.build "hello" [TI.toProducer termIndex]
     liftIO $ print a
 
     pl <- PL.open "hello" :: EitherT String IO (PL.PostingList DocId TermId)
