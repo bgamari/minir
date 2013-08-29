@@ -5,7 +5,7 @@ import Control.Monad.IO.Class
 import Control.Error
 import Data.Ord (comparing)
 import Data.List (sortBy)
-import qualified Data.Foldable as F
+import qualified Data.Foldable.Strict as F
 import Data.Binary    
 import qualified Data.Map as M    
 import Control.Lens hiding (each)
@@ -23,7 +23,9 @@ instance Binary TermId
 
 termIdx :: TermIndex DocId TermId
 termIdx =
-    F.foldMap (\(d,t)->TI.fromTerm (DocId d) (TermId t))
+    F.foldMap' (\(d,t)->TI.fromTerm (DocId d) (TermId t))
+    $ take 100000
+    $ cycle
     [ (0, 0)
     , (0, 1)
     , (0, 3)
