@@ -36,7 +36,7 @@ lookup :: (Monad m, Ord term, Binary term, Binary doc)
 lookup pl term =
     case BTree.lookup (plIndex pl) term of
       Nothing   -> Nothing
-      Just sref -> hush $ produceDocTerms pl sref
+      Just sref -> either (error . show) Just  $ produceDocTerms pl sref
 
 -- | Produce
 toProducer :: (Monad m, Binary term, Binary doc)
