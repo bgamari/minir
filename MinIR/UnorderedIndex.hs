@@ -24,10 +24,10 @@ import MinIR.FreqMap (fFreqs, fTotal, FreqMap)
 import qualified MinIR.FreqMap as FM
 
 ngrams :: Int -> Int -> [a] -> [[a]]
-ngrams k n =
+ngrams k n xs = error "MinIR.UnorderedIndex.ngrams: not implemented"
 
 newtype UnorderedIndex doc term
-        = UIdx { _oFreq :: !(Map (S.Set term) (FreqMap doc)) }
+        = UIdx { _oFreq :: Map (S.Set term) (FreqMap doc) }
         deriving (Show, Generic)
 makeLenses ''UnorderedIndex
 
