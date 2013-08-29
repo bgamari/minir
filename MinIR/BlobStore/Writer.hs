@@ -18,7 +18,8 @@ data StoreWriter = StoreWriter { storeHandle    :: !Handle
 
 open :: MonadIO m => FilePath -> m StoreWriter
 open fname = liftIO $ do
-    h <- openFile fname AppendMode
+    h <- openFile fname WriteMode
+    hSeek h SeekFromEnd 0
     writeLock <- newTMVarIO ()
     return $ StoreWriter h writeLock
 
