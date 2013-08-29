@@ -66,7 +66,7 @@ mapMP f = go
 mergeDocTerms :: (Monad m, Ord doc)
               => [Producer (Posting doc) m ()]
               -> Producer (Posting doc) m ()
-mergeDocTerms = merge (comparing docId) addDocTerms
+mergeDocTerms = mergeM (comparing docId) addDocTerms
   where addDocTerms :: Monad m => Posting doc -> Posting doc -> m (Posting doc)
         addDocTerms (Posting n1 doc) (Posting n2 _) = return $ Posting (n1+n2) doc
         docId :: Posting doc -> doc
